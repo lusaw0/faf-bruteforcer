@@ -54,20 +54,14 @@ pub fn perfect_patterns(output: String) -> (i32, String) {
             let round = line[12..13].to_owned().parse::<i32>().unwrap();
             let pat = line[24..25].to_owned().parse::<i32>().unwrap();
             match round {
-                1 => {
-                    if pat == 0 || pat == 3 {
-                        pattern = format!("Pattern {:?}", pat);
-                        perfect_patterns += 1;
-                    }
-                },
                 4 => {
                     if pat == 0 || pat == 3 {
                         perfect_patterns += 1;
                     }
                 },
-                2 | 3 | 5 => {
+                1 | 2 | 3 | 5 => {
                     match pat {
-                        1 | 2 | 5 => {
+                        0 | 1 | 2 | 3 | 5 => {
                             perfect_patterns += 1;
                         },
                         _ => {},
@@ -75,6 +69,7 @@ pub fn perfect_patterns(output: String) -> (i32, String) {
                 },
                 _ => {},
             }
+            pattern = format!("Pattern {:?}", pat);
         }
     }
     (perfect_patterns, pattern)
@@ -99,13 +94,14 @@ pub fn determine_run(lines: String, perfect_runs: i32, attempts: i32, secs: i32,
     let perfect_fruits = perfect_fruits(lines.clone());
     let perfect_patterns = perfect_patterns(lines.clone());
     match (perfect_fruits.0, perfect_patterns.0, perfect_patterns.1.as_str(), perfect_fruits.1.as_str()) {
-        (5, 5, "Pattern 0" | "Pattern 3", "banana" | "lemon" | "coconut") => {
-            log(LogType::PotentiallyPerfectRun, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
+        (5, 5, "Pattern 0" | "Pattern 1" | "Pattern 2" |"Pattern 3" | "Pattern 5", "banana" | "lemon" | "coconut") => {
+            PERFECTS.store(PERFECTS.load(Ordering::SeqCst) + 1, Ordering::SeqCst);
+            log(LogType::PotentiallyPerfectRun, PERFECTS.load(Ordering::SeqCst), attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         },
-        (4, 5, "Pattern 0" | "Pattern 3", "banana" | "lemon" | "coconut") => {
+        (4, 5, "Pattern 0" | "Pattern 1" | "Pattern 2" |"Pattern 3" | "Pattern 5", "banana" | "lemon" | "coconut") => {
             log(LogType::Close, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         },
-        (5, 4, "Pattern 0" | "Pattern 3", "banana" | "lemon" | "coconut") => {
+        (5, 4, "Pattern 0" | "Pattern 1" | "Pattern 2" |"Pattern 3" | "Pattern 5", "banana" | "lemon" | "coconut") => {
             log(LogType::Close, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         },
         (999, _, _, _) => {

@@ -1,4 +1,3 @@
-use crate::consts::{BRUTEFORCE_LOG_FORMATTED, BRUTEFORCE_LOG_HUMAN, BRUTEFORCE_POTENTIAL_PERFECTS_FORMATTED, BRUTEFORCE_POTENTIAL_PERFECTS_HUMAN};
 use crate::helpers::keep_last_n_lines;
 use crate::{consts, ATTEMPTS, CUR_NSECS, CUR_SECS, PERFECTS, START_ATTEMPTS, START_PERFECTS, START_TIME};
 use chrono::{Datelike, Local, Timelike};
@@ -110,7 +109,9 @@ i32, perfect_fruits: (i32, String), perfect_patterns: (i32, String)) {
         LogType::FailedRun => "#FF0000",
         LogType::Close => "#00E1FF",
         LogType::Ooh => "#0000FF",
-        LogType::PotentiallyPerfectRun => "#FFD700",
+        LogType::PotentiallyPerfectRun => {
+            "#FFD700"
+        },
         LogType::Round4PerfectRun => "#00E1FF"
     };
     (_msg, _msg_human) = format_messages(log_type,
@@ -123,10 +124,27 @@ i32, perfect_fruits: (i32, String), perfect_patterns: (i32, String)) {
         color_hex
     );
     if log_type == LogType::PotentiallyPerfectRun {
-        PERFECTS.fetch_add(1, Ordering::SeqCst);
-        write_log(BRUTEFORCE_POTENTIAL_PERFECTS_FORMATTED, BRUTEFORCE_POTENTIAL_PERFECTS_HUMAN, _msg.as_str(), _msg_human.as_str());
+        match perfect_patterns.1.as_str() {
+            "Pattern 0" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P0, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P0_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
+            "Pattern 1" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P1, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P1_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
+            "Pattern 2" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P2, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P2_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
+            "Pattern 3" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P3, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P3_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
+            "Pattern 5" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P5, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P5_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
+            _ => {},
+        }
+        write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_FORMATTED, consts::BRUTEFORCE_POTENTIAL_PERFECTS_HUMAN, _msg.as_str(), _msg_human.as_str());
     }
-    write_log(BRUTEFORCE_LOG_FORMATTED, BRUTEFORCE_LOG_HUMAN, _msg.as_str(), _msg_human.as_str());
+    write_log(consts::BRUTEFORCE_LOG_FORMATTED, consts::BRUTEFORCE_LOG_HUMAN, _msg.as_str(), _msg_human.as_str());
 }
 
 fn lines_from_file(file: String) -> String {
