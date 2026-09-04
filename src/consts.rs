@@ -1,0 +1,11 @@
+pub const LIBTAS_PATH: &str = "/home/luke/faf/libTAS/build/src/program/libTAS";
+pub const BRUTEFORCE_LTM_PATH: &str = "/home/luke/faf/ruffle/bruteforce.ltm";
+pub const TEST_LTM_PATH: &str = "/home/luke/faf/ruffle/43.80_no_sextou.ltm";
+pub const GAME_PATH: &str = "/home/luke/faf/ruffle/ruffle-0.4.1-linux-x86_64/ruffle";
+pub const BRUTEFORCE_LOG_FORMATTED: &str = "/home/luke/RustroverProjects/faf-bruteforcer/src/logs/bruteforce_formatted.log";
+pub const BRUTEFORCE_LOG_HUMAN: &str = "/home/luke/RustroverProjects/faf-bruteforcer/src/logs/bruteforce_human.log";
+pub const BRUTEFORCE_POTENTIAL_PERFECTS_FORMATTED: &str = "/home/luke/RustroverProjects/faf-bruteforcer/src/logs/potential_perfects_formatted.log";
+pub const BRUTEFORCE_POTENTIAL_PERFECTS_HUMAN: &str = "/home/luke/RustroverProjects/faf-bruteforcer/src/logs/potential_perfects_human.log";
+pub const MAX_S: i32 = 10000;
+pub const MAX_NS: i32 = 999999000;
+pub const LOG_FREQUENCY: i32 = 20;

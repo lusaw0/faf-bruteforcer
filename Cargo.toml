@@ -1,0 +1,12 @@
+[package]
+name = "faf-bruteforcer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+chrono = "0.4.45"
+colored = "3.1.1"
+atomic-time = "0.2.1"
+hhmmss = "0.1"
+sysinfo = "0.39.6"
+rev_buf_reader = "0.3.0"
