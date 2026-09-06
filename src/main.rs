@@ -7,6 +7,7 @@ use std::time::Instant;
 pub mod helpers;
 pub mod consts;
 pub mod log;
+pub mod test;
 
 static PERFECTS: AtomicI32 = AtomicI32::new(0);
 static START_PERFECTS: AtomicI32 = AtomicI32::new(0);
@@ -16,6 +17,7 @@ static _START_SECS: AtomicI32 = AtomicI32::new(0);
 static CUR_SECS: AtomicI32 = AtomicI32::new(0);
 static CUR_NSECS: AtomicI32 = AtomicI32::new(0);
 static START_NSECS: AtomicI32 = AtomicI32::new(9_999_000);
+static TRUE_PERFECTS: AtomicI32 = AtomicI32::new(0);
 static START_TIME: LazyLock<AtomicInstant> = LazyLock::new(| | AtomicInstant::new(Instant::now()));
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

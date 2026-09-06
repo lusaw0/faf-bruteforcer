@@ -1,5 +1,6 @@
-use crate::log::{log, LogType};
-use crate::{consts, ATTEMPTS, CUR_NSECS, CUR_SECS, PERFECTS};
+use crate::log::{log, BruteforceLogType};
+use crate::test::determine_run_test;
+use crate::{ATTEMPTS, CUR_NSECS, CUR_SECS, PERFECTS, TRUE_PERFECTS, consts};
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fs::File;
@@ -61,7 +62,7 @@ pub fn perfect_patterns(output: String) -> (i32, String) {
                 },
                 1 | 2 | 3 | 5 => {
                     match pat {
-                        0 | 1 | 2 | 3 | 5 => {
+                        0 | 1 | 2 | 3 | 4 | 5 | 6 => {
                             perfect_patterns += 1;
                         },
                         _ => {},
@@ -94,21 +95,21 @@ pub fn determine_run(lines: String, perfect_runs: i32, attempts: i32, secs: i32,
     let perfect_fruits = perfect_fruits(lines.clone());
     let perfect_patterns = perfect_patterns(lines.clone());
     match (perfect_fruits.0, perfect_patterns.0, perfect_patterns.1.as_str(), perfect_fruits.1.as_str()) {
-        (5, 5, "Pattern 0" | "Pattern 1" | "Pattern 2" |"Pattern 3" | "Pattern 5", "banana" | "lemon" | "coconut") => {
+        (5, 5, _, "banana" | "lemon" | "coconut") => {
             PERFECTS.store(PERFECTS.load(Ordering::SeqCst) + 1, Ordering::SeqCst);
-            log(LogType::PotentiallyPerfectRun, PERFECTS.load(Ordering::SeqCst), attempts, secs, nsecs, perfect_fruits, perfect_patterns);
+            log(BruteforceLogType::PotentiallyPerfectRun, PERFECTS.load(Ordering::SeqCst), attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         },
-        (4, 5, "Pattern 0" | "Pattern 1" | "Pattern 2" |"Pattern 3" | "Pattern 5", "banana" | "lemon" | "coconut") => {
-            log(LogType::Close, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
+        (4, 5, _, "banana" | "lemon" | "coconut") => {
+            log(BruteforceLogType::Close, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         },
-        (5, 4, "Pattern 0" | "Pattern 1" | "Pattern 2" |"Pattern 3" | "Pattern 5", "banana" | "lemon" | "coconut") => {
-            log(LogType::Close, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
+        (5, 4, _, "banana" | "lemon" | "coconut") => {
+            log(BruteforceLogType::Close, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         },
         (999, _, _, _) => {
-            log(LogType::Ooh, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
+            log(BruteforceLogType::Ooh, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         }
         _ => {
-            log(LogType::FailedRun, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
+            log(BruteforceLogType::FailedRun, perfect_runs, attempts, secs, nsecs, perfect_fruits, perfect_patterns);
         }
     }
     ATTEMPTS.store(ATTEMPTS.load(Ordering::SeqCst) + 1, Ordering::SeqCst);
@@ -163,13 +164,20 @@ pub fn run_libtas(mode: Mode, s: i32, nsec: i32) -> Result<(), Box<dyn Error>> {
 
     let string = String::from_utf8_lossy(&output.stdout).to_string();
 
-    determine_run(string.clone(), PERFECTS.load(Ordering::SeqCst), ATTEMPTS.load(Ordering::SeqCst),
-                  CUR_SECS.load(Ordering::SeqCst), CUR_NSECS.load(Ordering::SeqCst));
-    CUR_NSECS.store(CUR_NSECS.load(Ordering::SeqCst) + 1000, Ordering::SeqCst);
+    match mode {
+        Mode::Bruteforcing => {
+            determine_run(string.clone(), PERFECTS.load(Ordering::SeqCst), ATTEMPTS.load(Ordering::SeqCst),
+                        CUR_SECS.load(Ordering::SeqCst), CUR_NSECS.load(Ordering::SeqCst));
+            CUR_NSECS.store(CUR_NSECS.load(Ordering::SeqCst) + 1000, Ordering::SeqCst);
+        },
+        Mode::Testing => {
+            determine_run_test(string.clone(), TRUE_PERFECTS.load(Ordering::SeqCst), s, nsec);
+        },
+    }
     Ok(())
 }
 
-fn kill_libtas() {
+pub fn kill_libtas() {
     // First, try to kill the tracked PID if present. This avoids scanning by name.
     if let Some(m) = LIBTAS_PID.get() {
         let mut guard = m.lock().unwrap();

@@ -8,15 +8,19 @@ use std::io::Write;
 use std::sync::atomic::Ordering;
 
 #[derive(PartialEq, Clone, Copy)]
-pub enum LogType {
+pub enum BruteforceLogType {
     FailedRun,
     Ooh,
     Close,
     PotentiallyPerfectRun,
     Round4PerfectRun,
 }
+pub enum TestingLogType {
+    FailedRun,
+    TruePerfectRun,
+}
 
-fn format_log_timestamp() -> String {
+pub fn format_log_timestamp() -> String {
     let dt = Local::now();
     let ts = format!(
         "{:04?}-{:02?}-{:02?} {:02?}:{:02?}:{:02?}",
@@ -34,7 +38,7 @@ fn format_session_duration() -> String {
     START_TIME.load(Ordering::SeqCst).elapsed().hhmmssxxx()
 }
 
-fn format_messages(log_type: LogType,
+fn format_messages(log_type: BruteforceLogType,
    perfect_runs: i32,
    attempts: i32,
    secs: i32,
@@ -44,11 +48,11 @@ fn format_messages(log_type: LogType,
    color_hex: &str,
 ) -> (String , String) {
     let heading = match log_type {
-        LogType::FailedRun => "Failed! ",
-        LogType::Close => "Close!  ",
-        LogType::Ooh => "Ooh.",
-        LogType::PotentiallyPerfectRun => "Perfect!",
-        LogType::Round4PerfectRun => "Round 4 Perfect Run!",
+        BruteforceLogType::FailedRun => "Failed! ",
+        BruteforceLogType::Close => "Close!  ",
+        BruteforceLogType::Ooh => "Ooh.",
+        BruteforceLogType::PotentiallyPerfectRun => "Perfect!",
+        BruteforceLogType::Round4PerfectRun => "Round 4 Perfect Run!",
     };
     let session_perfects = format!("{:06}", PERFECTS.load(Ordering::SeqCst) - START_PERFECTS.load(Ordering::SeqCst));
     let session_attempts = format!("{:06}", ATTEMPTS.load(Ordering::SeqCst) - START_ATTEMPTS.load(Ordering::SeqCst));
@@ -70,7 +74,7 @@ fn format_messages(log_type: LogType,
         perfect_fruits.1,
     );
     match log_type {
-        LogType::Ooh => {
+        BruteforceLogType::Ooh => {
             part2 = "Ooh".to_owned();
         },
         _ => {},
@@ -78,7 +82,7 @@ fn format_messages(log_type: LogType,
     (format!("{}{}", _unformatted, part2.color(color_hex)), format!("{}{}", _unformatted, part2))
 }
 
-fn write_and_flush(filename: &str, msg: &str) {
+pub fn write_and_flush(filename: &str, msg: &str) {
     let mut file = File::options()
         .append(true)
         .create(true)
@@ -92,27 +96,27 @@ fn write_and_flush(filename: &str, msg: &str) {
     };
 }
 
-pub fn write_log(filename: &str, filename_human: &str, msg: &str, msg_human: &str) {
+fn write_log(filename: &str, filename_human: &str, msg: &str, msg_human: &str) {
     if ATTEMPTS.load(Ordering::SeqCst) % consts::LOG_FREQUENCY == 0 {
-        keep_last_n_lines(filename, 20).unwrap();
-        keep_last_n_lines(filename_human, 20).unwrap();
+        if filename == consts::BRUTEFORCE_LOG_FORMATTED || filename == consts::BRUTEFORCE_LOG_HUMAN {
+            keep_last_n_lines(filename, 20).unwrap();
+            keep_last_n_lines(filename_human, 20).unwrap();
+        }
     } 
     write_and_flush(filename, msg);
     write_and_flush(filename_human, msg_human);
 }
 
-pub fn log(log_type: LogType, perfect_runs: i32, attempts: i32, secs: i32, nsecs:
+pub fn log(log_type: BruteforceLogType, perfect_runs: i32, attempts: i32, secs: i32, nsecs:
 i32, perfect_fruits: (i32, String), perfect_patterns: (i32, String)) {
     let mut _msg = "".to_owned();
     let mut _msg_human = "".to_owned();
     let color_hex = match log_type {
-        LogType::FailedRun => "#FF0000",
-        LogType::Close => "#00E1FF",
-        LogType::Ooh => "#0000FF",
-        LogType::PotentiallyPerfectRun => {
-            "#FFD700"
-        },
-        LogType::Round4PerfectRun => "#00E1FF"
+        BruteforceLogType::FailedRun => "#FF0000",
+        BruteforceLogType::Close => "#00E1FF",
+        BruteforceLogType::Ooh => "#0000FF",
+        BruteforceLogType::PotentiallyPerfectRun => "#FFD700",
+        BruteforceLogType::Round4PerfectRun => "#00E1FF"
     };
     (_msg, _msg_human) = format_messages(log_type,
         perfect_runs,
@@ -123,7 +127,7 @@ i32, perfect_fruits: (i32, String), perfect_patterns: (i32, String)) {
         perfect_patterns.clone(),
         color_hex
     );
-    if log_type == LogType::PotentiallyPerfectRun {
+    if log_type == BruteforceLogType::PotentiallyPerfectRun {
         match perfect_patterns.1.as_str() {
             "Pattern 0" => {
                 write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P0, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P0_HUMAN, _msg.as_str(), _msg_human.as_str());
@@ -137,8 +141,14 @@ i32, perfect_fruits: (i32, String), perfect_patterns: (i32, String)) {
             "Pattern 3" => {
                 write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P3, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P3_HUMAN, _msg.as_str(), _msg_human.as_str());
             },
+            "Pattern 4" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P4, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P4_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
             "Pattern 5" => {
                 write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P5, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P5_HUMAN, _msg.as_str(), _msg_human.as_str());
+            },
+            "Pattern 6" => {
+                write_log(consts::BRUTEFORCE_POTENTIAL_PERFECTS_P6, consts::BRUTEFORCE_POTENTIAL_PERFECTS_P6_HUMAN, _msg.as_str(), _msg_human.as_str());
             },
             _ => {},
         }
